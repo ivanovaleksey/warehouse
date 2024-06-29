@@ -34,13 +34,14 @@ func (srv *Service) GetProducts(ctx context.Context, _ *warehousepb.GetProductsR
 			Price: prod.Price,
 			Stock: prod.Stock,
 		}
-		item.Articles = make([]*warehousepb.Product_Article, 0)
+		item.Articles = make([]*warehousepb.Product_Article, 0, len(prod.Articles))
 		for _, art := range prod.Articles {
 			item.Articles = append(item.Articles, &warehousepb.Product_Article{
 				Id:       art.ID,
 				Quantity: art.Quantity,
 			})
 		}
+		resp.Items = append(resp.Items, item)
 	}
 
 	return resp, nil

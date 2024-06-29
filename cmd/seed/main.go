@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"strconv"
 
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/fx"
@@ -87,7 +88,25 @@ func SeedProducts(ctx context.Context, db *pgx.Conn) error {
 	columns := []string{"name", "price", "articles"}
 	var rows [][]any
 	for _, item := range content.Products {
-		rows = append(rows, []any{item.Name, item.Price, item.ContainArticles})
+		var articles []any
+		for _, a := range item.ContainArticles {
+			id, err := strconv.Atoi(a.ArtId)
+			if err != nil {
+				return err
+			}
+			quantity, err := strconv.Atoi(a.AmountOf)
+			if err != nil {
+				return err
+			}
+			articles = append(articles, struct {
+				ID       int32
+				Quantity int32
+			}{
+				ID:       int32(id),
+				Quantity: int32(quantity),
+			})
+		}
+		rows = append(rows, []any{item.Name, item.Price, articles})
 	}
 	_, err = db.CopyFrom(ctx, pgx.Identifier{table}, columns, pgx.CopyFromRows(rows))
 	return err
