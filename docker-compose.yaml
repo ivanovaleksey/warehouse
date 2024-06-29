@@ -1,0 +1,22 @@
+name: warehouse
+
+services:
+  server:
+    image: warehouse
+    depends_on: [db]
+    ports:
+      - 8000:8000
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=warehouse
+  db-seed:
+    image: warehouse
+    command:
+      - /app/seed
+      - -config
+      - config/config.docker.yaml
+    depends_on: [db]
+    profiles: [tools]

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"path"
 	"strconv"
 
 	"github.com/jackc/pgx/v5"
@@ -18,12 +19,20 @@ func main() {
 		fx.Provide(NewApplicationContext),
 		fx.Provide(config.NewConfig),
 		fx.Provide(NewDatabase),
-		fx.Invoke(func(sd fx.Shutdowner, appCtx context.Context, db *pgx.Conn) error {
-			err := SeedProducts(appCtx, db)
+		fx.Invoke(func(sd fx.Shutdowner, appCtx context.Context, appCfg config.Config, db *pgx.Conn) error {
+			var cfg struct {
+				DataDir string
+			}
+			err := appCfg.GetConfig("seeds", &cfg)
 			if err != nil {
 				return err
 			}
-			err = SeedArticles(appCtx, db)
+
+			err = SeedProducts(appCtx, db, cfg.DataDir)
+			if err != nil {
+				return err
+			}
+			err = SeedArticles(appCtx, db, cfg.DataDir)
 			if err != nil {
 				return err
 			}
@@ -62,8 +71,8 @@ func NewDatabase(lc fx.Lifecycle, appCtx context.Context, appCfg config.Config) 
 	return conn, nil
 }
 
-func SeedProducts(ctx context.Context, db *pgx.Conn) error {
-	f, err := os.Open("cmd/seed/data/products.json")
+func SeedProducts(ctx context.Context, db *pgx.Conn, datadir string) error {
+	f, err := os.Open(path.Join(datadir, "products.json"))
 	if err != nil {
 		return err
 	}
@@ -112,8 +121,8 @@ func SeedProducts(ctx context.Context, db *pgx.Conn) error {
 	return err
 }
 
-func SeedArticles(ctx context.Context, db *pgx.Conn) error {
-	f, err := os.Open("cmd/seed/data/inventory.json")
+func SeedArticles(ctx context.Context, db *pgx.Conn, datadir string) error {
+	f, err := os.Open(path.Join(datadir, "inventory.json"))
 	if err != nil {
 		return err
 	}

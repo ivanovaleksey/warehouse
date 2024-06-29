@@ -1,0 +1,12 @@
+grpc:
+  port: 8000
+database:
+  host: db
+  port: 5432
+  username: postgres
+  password: postgres
+  database: warehouse
+  insecure: true
+  migrations: true
+seeds:
+  datadir: seeddata

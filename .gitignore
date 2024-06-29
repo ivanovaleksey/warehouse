@@ -1,2 +1,3 @@
 config.local.yaml
 mock.gen.go
+bin/
