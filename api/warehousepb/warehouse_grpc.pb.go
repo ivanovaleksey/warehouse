@@ -19,89 +19,126 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Warehouse_GetProducts_FullMethodName = "/warehouse.Warehouse/GetProducts"
+	WarehouseService_GetProducts_FullMethodName   = "/warehouse.WarehouseService/GetProducts"
+	WarehouseService_RemoveProduct_FullMethodName = "/warehouse.WarehouseService/RemoveProduct"
 )
 
-// WarehouseClient is the client API for Warehouse service.
+// WarehouseServiceClient is the client API for WarehouseService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type WarehouseClient interface {
+type WarehouseServiceClient interface {
 	GetProducts(ctx context.Context, in *GetProductsRequest, opts ...grpc.CallOption) (*GetProductsResponse, error)
+	RemoveProduct(ctx context.Context, in *RemoveProductRequest, opts ...grpc.CallOption) (*RemoveProductResponse, error)
 }
 
-type warehouseClient struct {
+type warehouseServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewWarehouseClient(cc grpc.ClientConnInterface) WarehouseClient {
-	return &warehouseClient{cc}
+func NewWarehouseServiceClient(cc grpc.ClientConnInterface) WarehouseServiceClient {
+	return &warehouseServiceClient{cc}
 }
 
-func (c *warehouseClient) GetProducts(ctx context.Context, in *GetProductsRequest, opts ...grpc.CallOption) (*GetProductsResponse, error) {
+func (c *warehouseServiceClient) GetProducts(ctx context.Context, in *GetProductsRequest, opts ...grpc.CallOption) (*GetProductsResponse, error) {
 	out := new(GetProductsResponse)
-	err := c.cc.Invoke(ctx, Warehouse_GetProducts_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, WarehouseService_GetProducts_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// WarehouseServer is the server API for Warehouse service.
-// All implementations must embed UnimplementedWarehouseServer
+func (c *warehouseServiceClient) RemoveProduct(ctx context.Context, in *RemoveProductRequest, opts ...grpc.CallOption) (*RemoveProductResponse, error) {
+	out := new(RemoveProductResponse)
+	err := c.cc.Invoke(ctx, WarehouseService_RemoveProduct_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// WarehouseServiceServer is the server API for WarehouseService service.
+// All implementations must embed UnimplementedWarehouseServiceServer
 // for forward compatibility
-type WarehouseServer interface {
+type WarehouseServiceServer interface {
 	GetProducts(context.Context, *GetProductsRequest) (*GetProductsResponse, error)
-	mustEmbedUnimplementedWarehouseServer()
+	RemoveProduct(context.Context, *RemoveProductRequest) (*RemoveProductResponse, error)
+	mustEmbedUnimplementedWarehouseServiceServer()
 }
 
-// UnimplementedWarehouseServer must be embedded to have forward compatible implementations.
-type UnimplementedWarehouseServer struct {
+// UnimplementedWarehouseServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedWarehouseServiceServer struct {
 }
 
-func (UnimplementedWarehouseServer) GetProducts(context.Context, *GetProductsRequest) (*GetProductsResponse, error) {
+func (UnimplementedWarehouseServiceServer) GetProducts(context.Context, *GetProductsRequest) (*GetProductsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProducts not implemented")
 }
-func (UnimplementedWarehouseServer) mustEmbedUnimplementedWarehouseServer() {}
+func (UnimplementedWarehouseServiceServer) RemoveProduct(context.Context, *RemoveProductRequest) (*RemoveProductResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveProduct not implemented")
+}
+func (UnimplementedWarehouseServiceServer) mustEmbedUnimplementedWarehouseServiceServer() {}
 
-// UnsafeWarehouseServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to WarehouseServer will
+// UnsafeWarehouseServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to WarehouseServiceServer will
 // result in compilation errors.
-type UnsafeWarehouseServer interface {
-	mustEmbedUnimplementedWarehouseServer()
+type UnsafeWarehouseServiceServer interface {
+	mustEmbedUnimplementedWarehouseServiceServer()
 }
 
-func RegisterWarehouseServer(s grpc.ServiceRegistrar, srv WarehouseServer) {
-	s.RegisterService(&Warehouse_ServiceDesc, srv)
+func RegisterWarehouseServiceServer(s grpc.ServiceRegistrar, srv WarehouseServiceServer) {
+	s.RegisterService(&WarehouseService_ServiceDesc, srv)
 }
 
-func _Warehouse_GetProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _WarehouseService_GetProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetProductsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(WarehouseServer).GetProducts(ctx, in)
+		return srv.(WarehouseServiceServer).GetProducts(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Warehouse_GetProducts_FullMethodName,
+		FullMethod: WarehouseService_GetProducts_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WarehouseServer).GetProducts(ctx, req.(*GetProductsRequest))
+		return srv.(WarehouseServiceServer).GetProducts(ctx, req.(*GetProductsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Warehouse_ServiceDesc is the grpc.ServiceDesc for Warehouse service.
+func _WarehouseService_RemoveProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WarehouseServiceServer).RemoveProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WarehouseService_RemoveProduct_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WarehouseServiceServer).RemoveProduct(ctx, req.(*RemoveProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// WarehouseService_ServiceDesc is the grpc.ServiceDesc for WarehouseService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Warehouse_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "warehouse.Warehouse",
-	HandlerType: (*WarehouseServer)(nil),
+var WarehouseService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "warehouse.WarehouseService",
+	HandlerType: (*WarehouseServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "GetProducts",
-			Handler:    _Warehouse_GetProducts_Handler,
+			Handler:    _WarehouseService_GetProducts_Handler,
+		},
+		{
+			MethodName: "RemoveProduct",
+			Handler:    _WarehouseService_RemoveProduct_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

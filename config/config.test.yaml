@@ -1,0 +1,10 @@
+grpc:
+  port: 8000
+database:
+  host: localhost
+  port: 5432
+  username: postgres
+  password: postgres
+  database: warehouse_test
+  insecure: true
+  migrations: true

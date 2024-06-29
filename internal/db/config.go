@@ -3,6 +3,8 @@ package db
 import (
 	"fmt"
 	"strings"
+
+	"warehouse/internal/config"
 )
 
 type Config struct {
@@ -14,6 +16,12 @@ type Config struct {
 	Schema     string
 	Insecure   bool
 	Migrations bool
+}
+
+func ParseConfig(appCfg config.Config) (Config, error) {
+	var cfg Config
+	err := appCfg.GetConfig("database", &cfg)
+	return cfg, err
 }
 
 func (cfg *Config) DSN() string {

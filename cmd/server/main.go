@@ -10,9 +10,6 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/knadh/koanf/parsers/yaml"
-	"github.com/knadh/koanf/providers/file"
-	"github.com/knadh/koanf/v2"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -21,17 +18,23 @@ import (
 	"warehouse/internal/config"
 	"warehouse/internal/db"
 	intgrpc "warehouse/internal/grpc"
+	articlesrepo "warehouse/internal/repositories/articles"
+	productsrepo "warehouse/internal/repositories/products"
+	"warehouse/internal/services/products"
 )
 
 func main() {
 	fx.New(
 		fx.Provide(NewApplicationContext),
-		fx.Provide(NewConfig),
+		fx.Provide(config.NewConfig),
 		fx.Provide(NewGRPCServer),
 		fx.Provide(NewDatabase),
+		fx.Provide(articlesrepo.NewRepository),
+		fx.Provide(productsrepo.NewRepository),
+		fx.Provide(NewWarehouseService),
 		fx.Invoke(MigrateDatabase),
-		fx.Invoke(func(server *grpc.Server) {
-			warehousepb.RegisterWarehouseServer(server, warehousepb.UnimplementedWarehouseServer{})
+		fx.Invoke(func(server *grpc.Server, service *intgrpc.Service) {
+			warehousepb.RegisterWarehouseServiceServer(server, service)
 		}),
 	).Run()
 }
@@ -79,17 +82,12 @@ func NewGRPCServer(lc fx.Lifecycle, appCfg config.Config) (*grpc.Server, error) 
 	return server, nil
 }
 
-func NewDatabase(lc fx.Lifecycle, appCfg config.Config) (*pgxpool.Pool, error) {
-	var cfg db.Config
-	err := appCfg.GetConfig("database", &cfg)
+func NewDatabase(lc fx.Lifecycle, appCtx context.Context, appCfg config.Config) (*pgxpool.Pool, error) {
+	cfg, err := db.ParseConfig(appCfg)
 	if err != nil {
 		return nil, err
 	}
-	pgxCfg, err := pgxpool.ParseConfig(cfg.DSN())
-	if err != nil {
-		return nil, err
-	}
-	pool, err := pgxpool.NewWithConfig(context.Background(), pgxCfg)
+	pool, err := pgxpool.New(appCtx, cfg.DSN())
 	if err != nil {
 		return nil, err
 	}
@@ -104,10 +102,7 @@ func NewDatabase(lc fx.Lifecycle, appCfg config.Config) (*pgxpool.Pool, error) {
 }
 
 func MigrateDatabase(appCfg config.Config) error {
-	const source = "file://db/migrations"
-
-	var cfg db.Config
-	err := appCfg.GetConfig("database", &cfg)
+	cfg, err := db.ParseConfig(appCfg)
 	if err != nil {
 		return err
 	}
@@ -115,7 +110,7 @@ func MigrateDatabase(appCfg config.Config) error {
 		return nil
 	}
 
-	m, err := migrate.New(source, cfg.DSN())
+	m, err := migrate.New("file://db/migrations", cfg.DSN())
 	if err != nil {
 		return err
 	}
@@ -126,11 +121,7 @@ func MigrateDatabase(appCfg config.Config) error {
 	return nil
 }
 
-func NewConfig() config.Config {
-	k := koanf.New(".")
-	f := file.Provider("config.local.yaml")
-	if err := k.Load(f, yaml.Parser()); err != nil {
-		log.Fatalf("error loading config file: %v", err)
-	}
-	return config.NewLoader(k)
+func NewWarehouseService(aRepo articlesrepo.Repository, pRepo productsrepo.Repository) (*intgrpc.Service, error) {
+	productsSrv := products.NewService(aRepo, pRepo)
+	return intgrpc.NewService(productsSrv), nil
 }
