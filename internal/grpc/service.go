@@ -25,7 +25,7 @@ func (srv *Service) GetProducts(ctx context.Context, _ *warehousepb.GetProductsR
 	}
 
 	resp := &warehousepb.GetProductsResponse{
-		Items: make([]*warehousepb.Product, len(prodsWithStock)),
+		Items: make([]*warehousepb.Product, 0, len(prodsWithStock)),
 	}
 	for _, prod := range prodsWithStock {
 		item := &warehousepb.Product{
