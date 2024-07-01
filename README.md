@@ -29,3 +29,21 @@ You will see empty response because there is no data in the database.
 ```shell
 docker-compose up -d db-seed
 ```
+
+### Test
+The test suite can be run locally or using docker-compose.
+
+1. Build test image
+```shell
+docker build -f tests/Dockerfile -t warehouse-tests .
+```
+
+2. Run test DB
+```shell
+docker-compose up -d db
+```
+
+3. Run the tests
+```shell
+docker-compose -f tests/docker-compose.yaml up tests
+```
